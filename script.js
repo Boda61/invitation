@@ -42,6 +42,41 @@ const localData = {
   memories: [],
 };
 
+async function apiPost(path, data) {
+  const response = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const payload = await response.json();
+  return { ok: response.ok, payload };
+}
+
+function setParticipants(rows) {
+  localData.teams = {
+    groom: rows.filter((row) => row.team === 'groom'),
+    bride: rows.filter((row) => row.team === 'bride'),
+  };
+}
+
+async function fetchParticipants() {
+  try {
+    const response = await fetch('/api/participants');
+    if (!response.ok) {
+      throw new Error('فشل تحميل بيانات المشاركين');
+    }
+    const rows = await response.json();
+    setParticipants(rows);
+    renderTeams();
+    renderLeaderboard();
+    return true;
+  } catch (error) {
+    console.error(error);
+    showMessage('فشل تحميل بيانات المشاركين');
+    return false;
+  }
+}
+
 function pad(value) {
   return String(value).padStart(2, '0');
 }
@@ -70,7 +105,7 @@ function updateCountdown() {
 }
 
 function saveLocalData() {
-  localStorage.setItem('weddingInviteData', JSON.stringify(localData));
+  localStorage.setItem('weddingInviteData', JSON.stringify({ memories: localData.memories }));
 }
 
 function getDefaultTeams() {
@@ -85,18 +120,18 @@ function loadLocalData() {
     const raw = localStorage.getItem('weddingInviteData');
     if (raw) {
       const parsed = JSON.parse(raw);
-      localData.teams = parsed.teams || getDefaultTeams();
       localData.memories = parsed.memories || [];
       return;
     }
   } catch (err) {
-    // fall back to defaults on error
     console.error('Error loading local data', err);
   }
 
-  localData.teams = getDefaultTeams();
   localData.memories = [];
 }
+
+// الملاحظة: البيانات الآن محفوظة في المتصفح فقط.
+// لكي تظهر لكل الزوار، يلزم ربطها بخادم أو قاعدة بيانات مشتركة.
 
 function showMessage(message) {
   const toast = document.createElement('div');
@@ -124,14 +159,21 @@ function findMemberInOtherTeam(team, name) {
   return findMember(otherTeam, name);
 }
 
-function addPointsToMember(team, name, points) {
+async function addPointsToMember(team, name, points) {
   const member = findMember(team, name);
   if (!member) return false;
-  member.points += points;
-  member.date = new Date().toISOString();
-  saveLocalData();
-  renderTeams();
-  renderLeaderboard();
+
+  const { ok, payload } = await apiPost('/api/points', {
+    name: member.name,
+    team,
+    points,
+  });
+  if (!ok) {
+    showMessage(payload.message || 'فشل تحديث النقاط');
+    return false;
+  }
+
+  await fetchParticipants();
   return true;
 }
 
@@ -194,15 +236,18 @@ function renderChallenges() {
 function renderLeaderboard() {
   const groomEntries = [...localData.teams.groom].sort((a, b) => b.points - a.points);
   const brideEntries = [...localData.teams.bride].sort((a, b) => b.points - a.points);
-  const allEntries = [...groomEntries, ...brideEntries].sort((a, b) => b.points - a.points);
-  const hasEntries = allEntries.length > 0;
+  const allEntriesWithTeam = [
+    ...groomEntries.map((member) => ({ ...member, team: 'فريق العريس' })),
+    ...brideEntries.map((member) => ({ ...member, team: 'فريق العروسة' })),
+  ].sort((a, b) => b.points - a.points);
+  const hasEntries = allEntriesWithTeam.length > 0;
 
   leaderboardCard.innerHTML = `
     <div class="leaderboard-card__top">
       <div class="crown">👑</div>
       <div>
         <h3>المركز الأول</h3>
-        <p>${hasEntries ? `${allEntries[0].name} - ${allEntries[0].points} نقطة` : 'لا توجد بيانات بعد'}</p>
+        <p>${hasEntries ? `${allEntriesWithTeam[0].name} - ${allEntriesWithTeam[0].points} نقطة` : 'لا توجد بيانات بعد'}</p>
       </div>
     </div>
     <div class="leaderboard-grid">
@@ -260,6 +305,26 @@ function renderLeaderboard() {
           </tbody>
         </table>
       </section>
+    </div>
+    <div class="participant-section">
+      <h4>كل المسجلين</h4>
+      ${hasEntries
+        ? `
+        <ul class="participant-list">
+          ${allEntriesWithTeam
+            .map(
+              (member) => `
+            <li>
+              <span class="participant-name">${member.name}</span>
+              <span class="participant-team">${member.team}</span>
+              <span class="participant-points">${member.points} نقطة</span>
+            </li>
+          `
+            )
+            .join('')}
+        </ul>
+      `
+        : '<p class="participant-empty">لم يسجل أحد بعد</p>'}
     </div>
     <button class="btn btn--primary">عرض الترتيب الكامل</button>
   `;
@@ -350,12 +415,11 @@ function getChallengeName() {
   return input ? input.value.trim() : '';
 }
 
-function addChallengePoints(team, name, points) {
+async function addChallengePoints(team, name, points) {
   if (!name) return false;
   const member = findMember(team, name);
   if (member) {
-    addPointsToMember(team, name, points);
-    return true;
+    return await addPointsToMember(team, name, points);
   }
 
   const otherMember = findMemberInOtherTeam(team, name);
@@ -392,7 +456,7 @@ function renderQuizQuestion(step, score, name, team) {
     <button class="btn btn--primary" id="quizNext">التالي</button>
   `;
 
-  document.getElementById('quizNext').addEventListener('click', () => {
+  document.getElementById('quizNext').addEventListener('click', async () => {
     const selected = document.querySelector('input[name="quizAnswer"]:checked');
     if (!selected) {
       showMessage('اختر إجابة أولاً');
@@ -404,7 +468,8 @@ function renderQuizQuestion(step, score, name, team) {
     if (nextStep < quizQuestions.length) {
       renderQuizQuestion(nextStep, nextScore, name, team);
     } else {
-      addChallengePoints(team, name, nextScore);
+      const result = await addChallengePoints(team, name, nextScore);
+      if (!result) return;
       challengeModalBody.innerHTML = `
         <div class="challenge-result">
           <h4>انتهى الاختبار!</h4>
@@ -505,7 +570,7 @@ function openChallengeForm(index) {
   const startButton = document.getElementById('challengeStart');
   if (!startButton) return;
 
-  startButton.addEventListener('click', () => {
+  startButton.addEventListener('click', async () => {
     const name = getChallengeName();
     const team = getChallengeTeam();
     if (!name) {
@@ -536,11 +601,11 @@ function openChallengeForm(index) {
         return;
       }
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         localData.memories.unshift(reader.result);
         if (localData.memories.length > 12) localData.memories.pop();
         saveLocalData();
-        addChallengePoints(team, name, 200);
+        await addChallengePoints(team, name, 200);
         renderMemories();
         challengeModalBody.innerHTML = `
           <div class="challenge-result">
@@ -562,7 +627,8 @@ function openChallengeForm(index) {
         showMessage('اكتب رسالتك أولاً');
         return;
       }
-      addChallengePoints(team, name, 60);
+      const result = await addChallengePoints(team, name, 60);
+      if (!result) return;
       challengeModalBody.innerHTML = `
         <div class="challenge-result">
           <h4>تم ارسال الرسالة!</h4>
@@ -580,7 +646,8 @@ function openChallengeForm(index) {
         showMessage('اكتب ذكريتك أولاً');
         return;
       }
-      addChallengePoints(team, name, 100);
+      const result = await addChallengePoints(team, name, 100);
+      if (!result) return;
       challengeModalBody.innerHTML = `
         <div class="challenge-result">
           <h4>تم نشر الذكرى!</h4>
@@ -594,7 +661,8 @@ function openChallengeForm(index) {
 
     if (index === 4) {
       const prediction = document.getElementById('challengePrediction').value;
-      addChallengePoints(team, name, 100);
+      const result = await addChallengePoints(team, name, 100);
+      if (!result) return;
       challengeModalBody.innerHTML = `
         <div class="challenge-result">
           <h4>تم ارسال توقعك!</h4>
@@ -618,7 +686,7 @@ function closeLightbox() {
   lightbox.classList.remove('open');
 }
 
-function addTeamEntry(team, name, points = 0) {
+async function addTeamEntry(team, name, points = 0) {
   const trimmedName = name.trim();
   if (!trimmedName) {
     showMessage('الرجاء كتابة الاسم');
@@ -637,19 +705,22 @@ function addTeamEntry(team, name, points = 0) {
     return;
   }
 
-  const entry = {
+  const { ok, payload } = await apiPost('/api/participants', {
     name: trimmedName,
-    points: points || Math.floor(Math.random() * 120) + 60,
-    date: new Date().toISOString(),
-  };
-  localData.teams[team].push(entry);
-  saveLocalData();
-  renderTeams();
-  renderLeaderboard();
+    team,
+    points: Number(points) || 10,
+  });
+
+  if (!ok) {
+    showMessage(payload.message || 'فشل إضافة المشارك');
+    return;
+  }
+
+  await fetchParticipants();
   showMessage(`تم انضمام ${trimmedName} إلى ${team === 'groom' ? 'فريق العريس' : 'فريق العروسة'}`);
 }
 
-function handleTeamForm(team, inputId) {
+async function handleTeamForm(team, inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
   const name = input.value.trim();
@@ -657,7 +728,7 @@ function handleTeamForm(team, inputId) {
     showMessage('الرجاء كتابة الاسم');
     return;
   }
-  addTeamEntry(team, name, 10);
+  await addTeamEntry(team, name, 10);
   input.value = '';
 }
 
@@ -779,7 +850,7 @@ function openAttendanceModal() {
 
   const attendanceConfirm = document.getElementById('attendanceConfirm');
   if (!attendanceConfirm) return;
-  attendanceConfirm.addEventListener('click', () => {
+  attendanceConfirm.addEventListener('click', async () => {
     const name = getChallengeName();
     const team = getChallengeTeam();
     if (!name) {
@@ -787,7 +858,7 @@ function openAttendanceModal() {
       return;
     }
 
-    if (!addPointsToMember(team, name, 100)) {
+    if (!(await addPointsToMember(team, name, 100))) {
       const otherMember = findMemberInOtherTeam(team, name);
       if (otherMember) {
         showMessage('الاسم مسجل في الفريق الآخر. اختر فريقك الصحيح.');
@@ -811,9 +882,8 @@ function openAttendanceModal() {
 
 async function init() {
   loadLocalData();
-  renderTeams();
+  await fetchParticipants();
   renderChallenges();
-  renderLeaderboard();
   renderMemories();
   updateCountdown();
   setInterval(updateCountdown, 1000);
