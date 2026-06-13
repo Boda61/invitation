@@ -38,43 +38,18 @@ const challenges = [
 ;
 
 const localData = {
-  teams: { groom: [], bride: [] },
+  teams: {
+    groom: [],
+    bride: [],
+  },
   memories: [],
 };
-
-async function apiPost(path, data) {
-  const response = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  const payload = await response.json();
-  return { ok: response.ok, payload };
-}
 
 function setParticipants(rows) {
   localData.teams = {
     groom: rows.filter((row) => row.team === 'groom'),
     bride: rows.filter((row) => row.team === 'bride'),
   };
-}
-
-async function fetchParticipants() {
-  try {
-    const response = await fetch('/api/participants');
-    if (!response.ok) {
-      throw new Error('فشل تحميل بيانات المشاركين');
-    }
-    const rows = await response.json();
-    setParticipants(rows);
-    renderTeams();
-    renderLeaderboard();
-    return true;
-  } catch (error) {
-    console.error(error);
-    showMessage('فشل تحميل بيانات المشاركين');
-    return false;
-  }
 }
 
 function pad(value) {
@@ -161,19 +136,14 @@ function findMemberInOtherTeam(team, name) {
 
 async function addPointsToMember(team, name, points) {
   const member = findMember(team, name);
+
   if (!member) return false;
 
-  const { ok, payload } = await apiPost('/api/points', {
-    name: member.name,
-    team,
-    points,
-  });
-  if (!ok) {
-    showMessage(payload.message || 'فشل تحديث النقاط');
-    return false;
-  }
+  member.points += points;
 
-  await fetchParticipants();
+  renderTeams();
+  renderLeaderboard();
+
   return true;
 }
 
@@ -215,7 +185,7 @@ function renderTeams() {
       <button class="btn btn--secondary" id="brideJoin">انضمي للفريق</button>
     </article>
   `;
-}
+};
 
 function renderChallenges() {
   challengeGrid.innerHTML = challenges
@@ -882,7 +852,8 @@ function openAttendanceModal() {
 
 async function init() {
   loadLocalData();
-  await fetchParticipants();
+  renderTeams();
+renderLeaderboard();
   renderChallenges();
   renderMemories();
   updateCountdown();
