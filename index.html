@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دعوة زفاف فاخرة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=El+Messiri:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="loader" id="loader">
+      <div class="loader-ring"></div>
+      <p>تحميل الدعوة...</p>
+    </div>
+
+    <audio id="backgroundAudio" loop preload="auto" autoplay playsinline>
+      <source src="assets/audio/1583051726_tk.mp3" type="audio/mpeg" />
+      المتصفح لا يدعم تشغيل الصوت.
+    </audio>
+
+    <header class="topbar" id="topbar">
+      <div class="topbar__left">
+        <button class="dropdown-toggle">
+          <span>تأكيد الحضور</span>
+          <span class="dropdown-arrow">▾</span>
+        </button>
+      </div>
+      <div class="topbar__right">
+        <button class="menu-toggle" id="menuToggle">القائمة</button>
+      </div>
+    </header>
+
+    <nav class="mobile-nav" id="mobileNav">
+      <a href="#hero">الرئيسية</a>
+      <a href="#info">الحدث</a>
+      <a href="#teams">الفريق</a>
+      <a href="#challenges">التحديات</a>
+      <a href="#leaderboard">لوحة المتصدرين</a>
+      <a href="#memories">الذكريات</a>
+      <a href="#share">شارك</a>
+    </nav>
+
+    <main>
+      <section class="hero" id="hero">
+        <div class="hero__background"></div>
+        <div class="hero__content container">
+          <div class="hero__copy animate-up">
+            <span class="eyebrow">دعوة زفاف فاخرة</span>
+            <h1>مصطفى & أسماء</h1>
+            <p class="hero__subtitle">
+              بدأت قصتنا... وبكم يكتمل الفرح <span>❤️</span>
+            </p>
+            <div class="countdown" id="countdown">
+              <div>
+                <span class="countdown__number" id="days">00</span>
+                <span>أيام</span>
+              </div>
+              <div>
+                <span class="countdown__number" id="hours">00</span>
+                <span>ساعات</span>
+              </div>
+              <div>
+                <span class="countdown__number" id="minutes">00</span>
+                <span>دقائق</span>
+              </div>
+              <div>
+                <span class="countdown__number" id="seconds">00</span>
+                <span>ثواني</span>
+              </div>
+            </div>
+            <a href="#info" class="btn btn--primary">استكشف الدعوة</a>
+          </div>
+
+          <div class="hero__visual animate-zoom">
+            <div class="hero__frame">
+              <div class="hero__image"></div>
+              <div class="candle candle--left"></div>
+              <div class="candle candle--right"></div>
+            </div>
+          </div>
+        </div>
+        <div class="petals" aria-hidden="true">
+          <span class="petal petal--one"></span>
+          <span class="petal petal--two"></span>
+          <span class="petal petal--three"></span>
+          <span class="petal petal--four"></span>
+          <span class="petal petal--five"></span>
+        </div>
+      </section>
+
+      <section class="section section--info" id="info">
+        <div class="container">
+          <div class="section__header">
+            <span>تفاصيل الحدث</span>
+            <h2>معلومات</h2>
+          </div>
+          <div class="info-grid animate-up">
+            <article class="info-card">
+              <div class="info-card__icon">📍</div>
+              <h3>المكان</h3>
+              <p>نادي منشيه ناصر</p>
+              <span>الجبل الاصفر</span>
+            </article>
+            <article class="info-card">
+              <div class="info-card__icon">📅</div>
+              <h3>التاريخ</h3>
+              <p>26 يونيو 2026</p>
+              <span>الجمعه</span>
+            </article>
+            <article class="info-card">
+              <div class="info-card__icon">🕒</div>
+              <h3>الوقت</h3>
+              <p>07:00 مساءً</p>
+            </article>
+            <article class="info-card">
+              <div class="info-card__icon">🗺️</div>
+              <h3>العنوان</h3>
+              <p>الجبل الاصفر</p>
+              <span>نادي منشيه ناصر</span>
+            </article>
+            <article class="info-card info-card--map">
+              <div class="info-card__map">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3444.6142634840906!2d31.34648307520993!3d30.063245281768144!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14583f6f00f76c17%3A0xa9ae8b0d9e443cfa!2z2KfZhNin2Kkg2KfZhNin2YTYs9iq!5e0!3m2!1sar!2seg!4v1718470012345"
+                  width="100%"
+                  height="100%"
+                  style="border:0; border-radius:24px;"
+                  allowfullscreen=""
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+              <a class="btn btn--secondary" href="https://www.google.com/maps/place/30%C2%B011'36.5%22N+31%C2%B022'13.0%22E/@30.1934719,31.3677063,17z/data=!3m1!4b1!4m4!3m3!8m2!3d30.1934719!4d31.3702812?hl=en&entry=ttu&g_ep=EgoyMDI2MDYxMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer">عرض على الخريطة</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--teams" id="teams">
+        <div class="container">
+          <div class="section__header">
+            <span>كن جزءًا من يومنا</span>
+            <h2>فريق العريس والعروسة</h2>
+          </div>
+          <div class="teams-grid animate-up" id="teamsGrid"></div>
+        </div>
+      </section>
+
+      <section class="section section--challenges" id="challenges">
+        <div class="container">
+          <div class="section__header">
+            <span>✨ التحديات ✨</span>
+            <h2>اختبر متعة اللعبة</h2>
+          </div>
+          <div class="challenge-grid animate-up" id="challengeGrid"></div>
+        </div>
+      </section>
+
+      <section class="section section--leaderboard" id="leaderboard">
+        <div class="container">
+          <div class="section__header">
+            <span>لوحة المتصدرين</span>
+            <h2>أفضل الأصدقاء</h2>
+          </div>
+          <div class="leaderboard-card animate-up" id="leaderboardCard"></div>
+        </div>
+      </section>
+
+      <section class="section section--memories" id="memories">
+        <div class="container">
+          <div class="section__header">
+            <span>اليوم الذكريات</span>
+            <h2>أجمل اللحظات</h2>
+          </div>
+          <div class="memory-grid animate-up" id="memoryGrid"></div>
+          <div class="memory-actions">
+            <label class="btn btn--secondary" for="uploadInput">أضف صورتك</label>
+            <input type="file" id="uploadInput" accept="image/*" hidden />
+          </div>
+        </div>
+      </section>
+
+      <section class="section section--share" id="share">
+        <div class="container">
+          <div class="section__header">
+            <span>شارك الدعوة مع أصدقائك</span>
+            <h2>كونوا معنا في هذه اللحظات</h2>
+          </div>
+          <div class="share-grid animate-up">
+            <a href="#" class="share-card share-card--whatsapp">WhatsApp</a>
+            <a href="#" class="share-card share-card--instagram">Instagram</a>
+            <a href="#" class="share-card share-card--facebook">Facebook</a>
+            <button class="share-card share-card--link" id="copyLink">نسخ الرابط</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>لا تفوتوا يومنا</p>
+      <span>ننتظركم لمشاركتنا أجمل لحظات العمر <span class="footer__heart">♥</span></span>
+    </footer>
+
+    <div class="lightbox" id="lightbox">
+      <button class="lightbox__close" id="lightboxClose">✕</button>
+      <img src="" alt="صورة الذكرى" id="lightboxImage" />
+    </div>
+
+    <div class="challenge-modal" id="challengeModal" aria-hidden="true">
+      <div class="challenge-modal__dialog">
+        <button class="challenge-modal__close" id="challengeModalClose">✕</button>
+        <div class="challenge-modal__content">
+          <h3 class="challenge-modal__title" id="challengeModalTitle"></h3>
+          <div class="challenge-modal__body" id="challengeModalBody"></div>
+          <div class="challenge-modal__footer" id="challengeModalFooter"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="audio-control hidden" id="audioControl">
+      <button type="button" class="audio-control__button" id="audioToggle">تشغيل الموسيقى</button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
