@@ -656,7 +656,7 @@ function closeLightbox() {
   lightbox.classList.remove('open');
 }
 
-async function addTeamEntry(team, name, points = 0) {
+function addTeamEntry(team, name, points = 0) {
   const trimmedName = name.trim();
   if (!trimmedName) {
     showMessage('الرجاء كتابة الاسم');
@@ -675,22 +675,18 @@ async function addTeamEntry(team, name, points = 0) {
     return;
   }
 
-  const { ok, payload } = await apiPost('/api/participants', {
+  // إضافة المستخدم مباشرة للتخزين المحلي
+  localData.teams[team].push({
     name: trimmedName,
-    team,
     points: Number(points) || 10,
   });
 
-  if (!ok) {
-    showMessage(payload.message || 'فشل إضافة المشارك');
-    return;
-  }
-
-  await fetchParticipants();
+  renderTeams();
+  renderLeaderboard();
   showMessage(`تم انضمام ${trimmedName} إلى ${team === 'groom' ? 'فريق العريس' : 'فريق العروسة'}`);
 }
 
-async function handleTeamForm(team, inputId) {
+function handleTeamForm(team, inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
   const name = input.value.trim();
@@ -698,7 +694,7 @@ async function handleTeamForm(team, inputId) {
     showMessage('الرجاء كتابة الاسم');
     return;
   }
-  await addTeamEntry(team, name, 10);
+  addTeamEntry(team, name, 10);
   input.value = '';
 }
 
